@@ -1,3 +1,7 @@
 torch
 lightning
 torchvision
+opencv-python
+pillow
+petastorm
+petastorm[torch]
