@@ -73,15 +73,16 @@ class HMDB51Dataset(Dataset):
         return frames
 
 class HMDB51DataModule(LightningDataModule):
-    def __init__(self, data_dir, batch_size=2, num_workers=4):
+    def __init__(self, data_dir, batch_size=1, num_workers=5):
         super().__init__()
         self.data_dir = data_dir
         self.batch_size = batch_size
         self.num_workers = num_workers
         self.transform = transforms.Compose([
-            transforms.Resize((224, 224)),       # 먼저 256x256으로 리사이즈
-            transforms.ToTensor(),               # 텐서로 변환
-            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225])
+            transforms.Resize(256, interpolation=transforms.InterpolationMode.BICUBIC),
+            transforms.CenterCrop(224),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.485, 0.456, 0.406], std=[0.229, 0.224, 0.225]),
         ])
 
     def setup(self, stage=None):
@@ -121,12 +122,12 @@ class HMDB51DataModule(LightningDataModule):
 
     def train_dataloader(self):
         return DataLoader(self.train_dataset, batch_size=self.batch_size, num_workers=self.num_workers, shuffle=True
-                          , collate_fn=self.collate_fn, persistent_workers=True, multiprocessing_context='fork' if torch.backends.mps.is_available() else None)
+                          , collate_fn=self.collate_fn, persistent_workers=False, multiprocessing_context='fork' if torch.backends.mps.is_available() else None)
 
     def val_dataloader(self):
         return DataLoader(self.val_dataset, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=self.collate_fn
-                          , persistent_workers=True, multiprocessing_context='fork' if torch.backends.mps.is_available() else None)
+                          , persistent_workers=False, multiprocessing_context='fork' if torch.backends.mps.is_available() else None)
 
     def test_dataloader(self):
         return DataLoader(self.test_dataset, batch_size=self.batch_size, num_workers=self.num_workers, collate_fn=self.collate_fn
-                          , persistent_workers=True, multiprocessing_context='fork' if torch.backends.mps.is_available() else None)
+                          , persistent_workers=False, multiprocessing_context='fork' if torch.backends.mps.is_available() else None)
